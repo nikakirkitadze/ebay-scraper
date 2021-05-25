@@ -7,7 +7,7 @@ class UserAgentHelper:
     
     def get_random_ua(self):
         random_ua = ''
-        ua_file = '/var/www/ecomercy-api/api/scraper/helpers/user-agents.txt'
+        ua_file = 'helpers/user-agents.txt' # In case of server here should place full path - /var/www/dir1/dir2/ebay-scraper/
         try:
             with open(ua_file) as f:
                 lines = f.readlines()

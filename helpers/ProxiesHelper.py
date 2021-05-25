@@ -3,7 +3,8 @@ from bs4 import BeautifulSoup
 from random import choice
 
 class ProxiesHelper: 
-    
+
+
     def __init__(self):
         print("init")
     
