@@ -1,5 +1,8 @@
 import requests 
 import json
+
+from requests.api import head
+from selectorlib import Extractor
 from time import sleep
 from helpers.UserAgentHelper import UserAgentHelper
 from helpers.ProxiesHelper  import ProxiesHelper
@@ -7,13 +10,13 @@ from helpers.ProxiesHelper  import ProxiesHelper
 def get_page(url):
     response = requests.get(url)
 
-def scrape(url):
+def scrape(url, e): 
     user_agent_helper = UserAgentHelper()
     proxy_helper = ProxiesHelper()
 
-    print(proxy_helper.get_proxy())
-
     user_agent = user_agent_helper.get_random_ua()
+
+    print(proxy_helper.get_proxy())
 
     headers = {
         'dnt': '1',
@@ -30,7 +33,7 @@ def scrape(url):
 
     # Download the page using requests
     print("Downloading %s"%url)
-
+    
     while 1:
         try:
             proxy = proxy_helper.get_proxy()
@@ -39,7 +42,7 @@ def scrape(url):
             break
         except:
             pass
-
+    print(r)
     # Simple check to check if page was blocked (Usually 503)
     if r.status_code > 500:
         if "To discuss automated access to Amazon data please contact" in r.text:
@@ -47,14 +50,26 @@ def scrape(url):
         else:
             print("Page %s must have been blocked by Amazon as the status code was %d"%(url,r.status_code))
         return None
-    
+    # Pass the HTML of the page and create 
+    return e.extract(r.text)
+
+def search(url):
+    # Create an Extractor by reading from the YAML file
+    e = Extractor.from_yaml_file('selectors/search_results.yml')
+    data = scrape(url, e) 
+    print(data)
+    products = []
+    if data is not None:
+        for product in data['products']:
+            product['search_url'] = url
+            products.append(product)
+        json_str = json.dumps(products)
+        return json.loads(json_str)
 
 def main():
-    url = 'https://www.ebay.com/itm/294181823731?_trkparms=aid%3D111001%26algo%3DREC.SEED%26ao%3D1%26asc%3D20180816085401%26meid%3D1c3f602774e74fb699b993d586bdb965%26pid%3D100970%26rk%3D1%26rkt%3D3%26sd%3D294181823731%26itm%3D294181823731%26pmt%3D0%26noa%3D1%26pg%3D2380057%26brand%3DApple&_trksid=p2380057.c100970.m5481&_trkparms=pageci%3Adf55f033-bd70-11eb-b489-8af2a02fd408%7Cparentrq%3Aa43801f31790a45e3daffed2fff2a76a%7Ciid%3A1'
-
-    scrape(url)
-
-
+    url = "https://www.ebay.com/sch/i.html?_from=R40&_trksid=p2380057.m570.l1313&_nkw=iPhone+11+pro&_sacat=0"
+    search_result = search(url)
+    print(search_result)
 
 if __name__ == '__main__':
     main()
